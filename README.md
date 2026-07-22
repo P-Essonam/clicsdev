@@ -16,8 +16,6 @@ Clics measures traffic, goals, and funnels on your sites. This repository distri
 | **CLI** | [`@clicsdev/cli`](https://www.npmjs.com/package/@clicsdev/cli) | Scripts, CI, and manual verification from the terminal |
 | **Agent skill** | this repo | Teaching agents when and how to use Clics MCP + CLI |
 
-All three talk to the same API (`https://api.clics.dev`). Create an API key in the [dashboard](https://platform.clics.dev).
-
 ---
 
 ## MCP (`@clicsdev/mcp`)
