@@ -6,28 +6,75 @@ Privacy-friendly, cookieless web analytics — built for teams that want GDPR-fr
 - **Dashboard:** [platform.clics.dev](https://platform.clics.dev)
 - **Docs:** [clics.dev/docs](https://clics.dev/docs)
 
-Clics measures traffic, goals, and funnels on your sites. This repository distributes **agent-facing tooling** so AI assistants can query analytics and manage your workspace from the terminal or an MCP client.
+Clics measures traffic, goals, and funnels on your sites. This repository distributes **agent-facing tooling** so AI assistants can query analytics and manage your workspace from the terminal, a local MCP client, or a web-based assistant.
 
 ## What you get
 
-| Tool | Package / transport | Best for |
-|------|---------------------|----------|
-| **Local MCP** | [`@clicsdev/mcp`](https://www.npmjs.com/package/@clicsdev/mcp) (stdio) | Cursor, Claude Code, VS Code, Windsurf, and any MCP client |
-| **Remote MCP** | Streamable HTTP (hosted) | Cloud agents and clients that connect to a remote MCP endpoint |
+| Tool | Package / endpoint | Best for |
+|------|-------------------|----------|
+| **Remote MCP** | Hosted endpoint (see below) | ChatGPT, Claude.ai, n8n, and other HTTP MCP clients |
+| **Local MCP** | [`@clicsdev/mcp`](https://www.npmjs.com/package/@clicsdev/mcp) | Cursor, Claude Code, VS Code, Windsurf, and other stdio MCP clients |
 | **CLI** | [`@clicsdev/cli`](https://www.npmjs.com/package/@clicsdev/cli) | Scripts, CI, and manual verification from the terminal |
 | **Agent skill** | this repo | Teaching agents when and how to use Clics MCP + CLI |
 
----
-
-## MCP
-
-Clics exposes the same 15 tools over MCP in two ways: a **local stdio server** you run with `npx`, or a **remote Streamable HTTP endpoint** hosted by Clics (API key in the URL path, no local process).
-
 Create an API key in the [dashboard](https://platform.clics.dev).
 
-### Local (`@clicsdev/mcp`)
+---
 
-Local [Model Context Protocol](https://modelcontextprotocol.io) server for cookie-free analytics. Manage projects, goals, funnels, and query stats from your AI editor.
+## Remote MCP
+
+Hosted [Model Context Protocol](https://modelcontextprotocol.io) server over HTTP Streamable. Use this when your assistant runs in the browser or in a workflow tool and cannot run a local `npx` process.
+
+**Endpoint** (replace `YOUR_API_KEY` with your Clics API key):
+
+```
+https://api.clics.dev/YOUR_API_KEY/v1/mcp
+```
+
+The API key is embedded in the URL (same pattern as [Firecrawl remote MCP](https://docs.firecrawl.dev/mcp-server)). Set authentication to **None** in the client; no extra headers are required.
+
+**Tools:** same 15 tools as local MCP (`list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `query_stats`).
+
+### ChatGPT
+
+1. Create an API key in the [dashboard](https://platform.clics.dev).
+2. In ChatGPT, open **Settings** → **Advanced Settings** and enable **Developer mode**.
+3. Open **Apps & Connectors** → **Create**.
+4. Fill in:
+   - **Name:** `Clics MCP`
+   - **MCP Server URL:** `https://api.clics.dev/YOUR_API_KEY/v1/mcp`
+   - **Authentication:** `None`
+5. Save and enable the connector in a conversation.
+
+See also: [Firecrawl ChatGPT MCP guide](https://docs.firecrawl.dev/developer-guides/mcp-setup-guides/chatgpt) for the same connector flow.
+
+### Claude.ai
+
+1. Create an API key in the [dashboard](https://platform.clics.dev).
+2. Go to **Settings** → **Connectors** → **Add custom connector**.
+3. Set **URL** to `https://api.clics.dev/YOUR_API_KEY/v1/mcp` (leave OAuth fields blank).
+4. In a conversation, enable the connector from **Connectors**.
+
+See also: [Firecrawl Claude.ai MCP guide](https://docs.firecrawl.dev/developer-guides/mcp-setup-guides/claude-ai).
+
+### n8n
+
+1. Create an API key in the [dashboard](https://platform.clics.dev).
+2. In your workflow, add an **AI Agent** node.
+3. Add a tool → **MCP Client Tool**.
+4. Configure:
+   - **Endpoint:** `https://api.clics.dev/YOUR_API_KEY/v1/mcp`
+   - **Server Transport:** `HTTP Streamable`
+   - **Authentication:** `None`
+5. Choose which tools to expose (All, Selected, or All Except).
+
+See also: [Firecrawl n8n setup](https://docs.firecrawl.dev/mcp-server#running-on-n8n) for the same MCP Client Tool flow.
+
+---
+
+## Local MCP (`@clicsdev/mcp`)
+
+Local [Model Context Protocol](https://modelcontextprotocol.io) server (stdio) for cookie-free analytics. Manage projects, goals, funnels, and query stats from your editor when it can run a local process.
 
 **Install**
 
@@ -57,24 +104,6 @@ npm install -g @clicsdev/mcp
 **Tools:** `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `query_stats`.
 
 Full client setup: [npm/@clicsdev/mcp](https://www.npmjs.com/package/@clicsdev/mcp)
-
-### Remote (Streamable HTTP)
-
-Hosted MCP for clients that support remote HTTP transport. Same tools as the local server; your API key is passed in the endpoint URL (no `CLICS_API_KEY` env var).
-
-**Cursor** (`.cursor/mcp.json`):
-
-```json
-{
-  "mcpServers": {
-    "clics": {
-      "url": "https://api.clics.dev/<your-api-key>/v1/mcp"
-    }
-  }
-}
-```
-
-Replace `<your-api-key>` with a key from the [dashboard](https://platform.clics.dev). See [Clics docs](https://clics.dev/docs) for other clients and details.
 
 ---
 
