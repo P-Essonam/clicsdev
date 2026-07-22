@@ -5,19 +5,19 @@ Agent skills for [Clics](https://clics.dev) — privacy-friendly, cookieless web
 Install with the [skills CLI](https://github.com/vercel-labs/skills):
 
 ```bash
-npx skills add clicsdev/skills --skill clics
+npx skills add P-Essonam/clicsdev --skill clics
 ```
 
 Global install (all projects):
 
 ```bash
-npx skills add clicsdev/skills --skill clics -g -y
+npx skills add P-Essonam/clicsdev --skill clics -g -y
 ```
 
 List skills in this repo without installing:
 
 ```bash
-npx skills add clicsdev/skills --list
+npx skills add P-Essonam/clicsdev --list
 ```
 
 ## Requirements
