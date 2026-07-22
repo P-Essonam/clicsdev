@@ -31,7 +31,7 @@ Hosted [Model Context Protocol](https://modelcontextprotocol.io) server over HTT
 https://api.clics.dev/YOUR_API_KEY/v1/mcp
 ```
 
-The API key is embedded in the URL (same pattern as [Firecrawl remote MCP](https://docs.firecrawl.dev/mcp-server)). Set authentication to **None** in the client; no extra headers are required.
+The API key is embedded in the URL. Set authentication to **None** in the client; no extra headers are required.
 
 **Tools:** same 15 tools as local MCP (`list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `query_stats`).
 
@@ -46,16 +46,12 @@ The API key is embedded in the URL (same pattern as [Firecrawl remote MCP](https
    - **Authentication:** `None`
 5. Save and enable the connector in a conversation.
 
-See also: [Firecrawl ChatGPT MCP guide](https://docs.firecrawl.dev/developer-guides/mcp-setup-guides/chatgpt) for the same connector flow.
-
 ### Claude.ai
 
 1. Create an API key in the [dashboard](https://platform.clics.dev).
 2. Go to **Settings** → **Connectors** → **Add custom connector**.
 3. Set **URL** to `https://api.clics.dev/YOUR_API_KEY/v1/mcp` (leave OAuth fields blank).
 4. In a conversation, enable the connector from **Connectors**.
-
-See also: [Firecrawl Claude.ai MCP guide](https://docs.firecrawl.dev/developer-guides/mcp-setup-guides/claude-ai).
 
 ### n8n
 
@@ -67,8 +63,6 @@ See also: [Firecrawl Claude.ai MCP guide](https://docs.firecrawl.dev/developer-g
    - **Server Transport:** `HTTP Streamable`
    - **Authentication:** `None`
 5. Choose which tools to expose (All, Selected, or All Except).
-
-See also: [Firecrawl n8n setup](https://docs.firecrawl.dev/mcp-server#running-on-n8n) for the same MCP Client Tool flow.
 
 ---
 
