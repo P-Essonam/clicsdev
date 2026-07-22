@@ -10,15 +10,22 @@ Clics measures traffic, goals, and funnels on your sites. This repository distri
 
 ## What you get
 
-| Tool | Package | Best for |
-|------|---------|----------|
-| **MCP server** | [`@clicsdev/mcp`](https://www.npmjs.com/package/@clicsdev/mcp) | Cursor, Claude Code, VS Code, Windsurf, and any MCP client |
+| Tool | Package / transport | Best for |
+|------|---------------------|----------|
+| **Local MCP** | [`@clicsdev/mcp`](https://www.npmjs.com/package/@clicsdev/mcp) (stdio) | Cursor, Claude Code, VS Code, Windsurf, and any MCP client |
+| **Remote MCP** | Streamable HTTP (hosted) | Cloud agents and clients that connect to a remote MCP endpoint |
 | **CLI** | [`@clicsdev/cli`](https://www.npmjs.com/package/@clicsdev/cli) | Scripts, CI, and manual verification from the terminal |
 | **Agent skill** | this repo | Teaching agents when and how to use Clics MCP + CLI |
 
 ---
 
-## MCP (`@clicsdev/mcp`)
+## MCP
+
+Clics exposes the same 15 tools over MCP in two ways: a **local stdio server** you run with `npx`, or a **remote Streamable HTTP endpoint** hosted by Clics (API key in the URL path, no local process).
+
+Create an API key in the [dashboard](https://platform.clics.dev).
+
+### Local (`@clicsdev/mcp`)
 
 Local [Model Context Protocol](https://modelcontextprotocol.io) server for cookie-free analytics. Manage projects, goals, funnels, and query stats from your AI editor.
 
@@ -50,6 +57,24 @@ npm install -g @clicsdev/mcp
 **Tools:** `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `query_stats`.
 
 Full client setup: [npm/@clicsdev/mcp](https://www.npmjs.com/package/@clicsdev/mcp)
+
+### Remote (Streamable HTTP)
+
+Hosted MCP for clients that support remote HTTP transport. Same tools as the local server; your API key is passed in the endpoint URL (no `CLICS_API_KEY` env var).
+
+**Cursor** (`.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "clics": {
+      "url": "https://api.clics.dev/<your-api-key>/v1/mcp"
+    }
+  }
+}
+```
+
+Replace `<your-api-key>` with a key from the [dashboard](https://platform.clics.dev). See [Clics docs](https://clics.dev/docs) for other clients and details.
 
 ---
 
