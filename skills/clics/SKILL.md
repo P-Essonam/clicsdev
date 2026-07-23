@@ -38,7 +38,11 @@ npm install -g @clicsdev/cli
 clics init --api-key "<your-api-key>"
 ```
 
-Re-run `clics init` to rotate the key. Successful CLI commands print a single JSON document on stdout; errors are written to stderr with a non-zero exit code.
+Re-run `clics init` to rotate the key. Clear stored credentials with `clics logout`. Successful CLI commands print a single JSON document on stdout; errors are written to stderr with a non-zero exit code.
+
+```bash
+clics logout
+```
 
 ## MCP tools (preferred)
 

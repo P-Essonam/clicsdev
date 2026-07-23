@@ -118,6 +118,12 @@ npm install -g @clicsdev/cli
 clics init --api-key "<your-api-key>"
 ```
 
+**Logout**
+
+```bash
+clics logout
+```
+
 **Examples**
 
 ```bash
