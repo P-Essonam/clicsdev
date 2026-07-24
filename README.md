@@ -6,7 +6,7 @@ Privacy-friendly, cookieless web analytics — built for teams that want GDPR-fr
 - **Dashboard:** [platform.clics.dev](https://platform.clics.dev)
 - **Docs:** [clics.dev/docs](https://clics.dev/docs)
 
-Clics measures traffic, goals, and funnels on your sites. This repository distributes **agent-facing tooling** so AI assistants can query analytics and manage your workspace from the terminal, a local MCP client, or a web-based assistant.
+Clics measures traffic, goals, funnels, and sessions on your sites. This repository distributes **agent-facing tooling** so AI assistants can query analytics and manage your workspace from the terminal, a local MCP client, or a web-based assistant.
 
 ## What you get
 
@@ -33,7 +33,7 @@ https://api.clics.dev/YOUR_API_KEY/v1/mcp
 
 The API key is embedded in the URL. Set authentication to **None** in the client; no extra headers are required.
 
-**Tools:** same 15 tools as local MCP (`list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `query_stats`).
+**Tools:** same 18 tools as local MCP (`list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `list_sessions`, `get_session`, `list_session_events`, `query_stats`).
 
 ### ChatGPT
 
@@ -68,7 +68,7 @@ The API key is embedded in the URL. Set authentication to **None** in the client
 
 ## Local MCP (`@clicsdev/mcp`)
 
-Local [Model Context Protocol](https://modelcontextprotocol.io) server (stdio) for cookie-free analytics. Manage projects, goals, funnels, and query stats from your editor when it can run a local process.
+Local [Model Context Protocol](https://modelcontextprotocol.io) server (stdio) for cookie-free analytics. Manage projects, goals, funnels, sessions, and query stats from your editor when it can run a local process.
 
 **Install**
 
@@ -95,7 +95,7 @@ npm install -g @clicsdev/mcp
 }
 ```
 
-**Tools:** `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `query_stats`.
+**Tools:** `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `list_sessions`, `get_session`, `list_session_events`, `query_stats`.
 
 Full client setup: [npm/@clicsdev/mcp](https://www.npmjs.com/package/@clicsdev/mcp)
 
@@ -129,6 +129,9 @@ clics logout
 ```bash
 clics projects list
 clics goals list <project-id>
+clics sessions list <project-id> --date-range last7days --limit 20
+clics sessions get <project-id> <session-id>
+clics sessions events <project-id> <session-id>
 clics query <project-id> --metrics visitors pageviews bounce_rate --date-range last30days
 ```
 
@@ -138,7 +141,7 @@ Full command reference: [npm/@clicsdev/cli](https://www.npmjs.com/package/@clics
 
 ## Agent skill
 
-The `clics` skill teaches agents to prefer MCP when connected, fall back to CLI when not, and follow analytics playbooks (overview, top pages/countries, goals/funnels).
+The `clics` skill teaches agents to prefer MCP when connected, fall back to CLI when not, and follow analytics playbooks (overview, top pages/countries, goals/funnels, sessions).
 
 **Install** with the [skills CLI](https://github.com/vercel-labs/skills):
 
