@@ -1,11 +1,11 @@
 ---
 name: clics
-description: Query Clics analytics and manage projects, goals, and funnels through the Clics MCP server (`@clicsdev/mcp`), with the `clics` CLI (`@clicsdev/cli`) as a fallback. Use when a user asks about their analytics, mentions Clics, works with the Clics toolset, verifies Clics manually, or needs to choose between MCP and CLI.
+description: Query Clics analytics and manage projects, goals, funnels, and sessions through the Clics MCP server (`@clicsdev/mcp`), with the `clics` CLI (`@clicsdev/cli`) as a fallback. Use when a user asks about their analytics, mentions Clics, works with the Clics toolset, verifies Clics manually, or needs to choose between MCP and CLI.
 ---
 
 # Clics
 
-Clics is privacy-friendly, cookieless web analytics. Agents manage projects, goals, funnels, and analytics stats in two ways:
+Clics is privacy-friendly, cookieless web analytics. Agents manage projects, goals, funnels, sessions, and analytics stats in two ways:
 
 - **MCP tools** (`clics` server via `@clicsdev/mcp`) — preferred for agents.
 - **CLI** (`@clicsdev/cli`, binary `clics`) — fallback when MCP is unavailable, for manual verification, or for scripts and CI.
@@ -79,13 +79,21 @@ Server name: `clics`. Call tools directly; full input schemas are defined on eac
 | `update_funnel` | `funnel_id` + body without `env_id` |
 | `delete_funnel` | `funnel_id` |
 
+### Sessions
+
+Period presets match `query_stats` (`last24h`, `last7days`, …, `allTime`). Custom ranges: pass both `start` and `end`. Optional `domain` (`localhost` for development traffic only).
+
+| Tool | Key inputs |
+|------|------------|
+| `list_sessions` | `project_id`, optional `domain`, `date_range` (default `last7days`), `start`, `end`, `cursor`, `limit` |
+| `get_session` | `project_id`, `session_id`, optional `domain`, `date_range` (default `allTime`), `start`, `end` |
+| `list_session_events` | `project_id`, `session_id`, optional `domain`, `date_range` (default `allTime`), `start`, `end` |
+
 ### Stats
 
 | Tool | Key inputs |
 |------|------------|
 | `query_stats` | full Stats body: `project_id`, `metrics`, `date_range`, optional `domain`, `dimensions`, `filters`, `order_by`, `include`, `pagination` |
-
-MCP example (`query_stats` input):
 
 ```json
 {
@@ -240,6 +248,32 @@ clics funnels update <funnel-id> --body @funnel-update.json
 clics funnels delete <funnel-id>
 ```
 
+### Sessions
+
+**List**
+
+```bash
+clics sessions list <project-id>
+clics sessions list <project-id> --date-range last7days --limit 20
+clics sessions list <project-id> --domain example.com --date-range last30days
+clics sessions list <project-id> --start 2026-07-01 --end 2026-07-15
+clics sessions list <project-id> --cursor "<cursor>"
+```
+
+**Get**
+
+```bash
+clics sessions get <project-id> <session-id>
+clics sessions get <project-id> <session-id> --date-range last30days
+```
+
+**Events**
+
+```bash
+clics sessions events <project-id> <session-id>
+clics sessions events <project-id> <session-id> --domain localhost
+```
+
 ### Query analytics
 
 `--metrics` and `--date-range` are required (unless using `--file`).
@@ -358,6 +392,14 @@ Prefer `--body @file.json` / `--file file.json` over inline JSON (especially on 
 3. Optionally run `get_funnel` or `clics funnels get <funnel-id>` for step details.
 4. Report what is configured. Do not create or delete resources unless the user asked.
 
+
+### 4. Inspect recent sessions
+
+1. Resolve `project_id` as above.
+2. Run `list_sessions` or `clics sessions list <project-id> --date-range last7days --limit 20`.
+3. Pick a `session_id`, then `get_session` / `clics sessions get <project-id> <session-id>` and `list_session_events` / `clics sessions events <project-id> <session-id>`.
+4. Summarize landing/exit, bounce, duration, and notable events. Do not invent session IDs.
+
 ## Manual verification
 
 Confirm authentication and API access with the CLI so JSON is visible in the terminal:
@@ -365,9 +407,10 @@ Confirm authentication and API access with the CLI so JSON is visible in the ter
 ```bash
 clics projects list
 clics query <project-id> --metrics visitors --date-range last7days
+clics sessions list <project-id> --date-range last7days --limit 5
 ```
 
-Expect a JSON projects payload and a stats `results` array. Common errors:
+Expect a JSON projects payload, a stats `results` array, and a sessions list. Common errors:
 
 - `API key is required. Run clics init.` — run `clics init --api-key "…"`
 - `401` / `invalid key` — rotate or recreate the key, then run `clics init` again
@@ -377,6 +420,6 @@ Expect a JSON projects payload and a stats `results` array. Common errors:
 
 - Product: https://clics.dev
 - Dashboard: https://platform.clics.dev
-- Docs: https://clics.dev/docs
+- Docs: https://docs.clics.dev
 - MCP: `@clicsdev/mcp`
 - CLI: `@clicsdev/cli`
