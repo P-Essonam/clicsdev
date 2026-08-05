@@ -33,7 +33,7 @@ https://api.clics.dev/YOUR_API_KEY/v1/mcp
 
 The API key is embedded in the URL. Set authentication to **None** in the client; no extra headers are required.
 
-**Tools:** same 18 tools as local MCP (`list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `list_sessions`, `get_session`, `list_session_events`, `query_stats`).
+**Tools:** 18 core workspace tools: `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `list_sessions`, `get_session`, `list_session_events`, and `query_stats`.
 
 ### ChatGPT
 
@@ -95,7 +95,9 @@ npm install -g @clicsdev/mcp
 }
 ```
 
-**Tools:** `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `list_sessions`, `get_session`, `list_session_events`, `query_stats`.
+**Tools:** 22 tools: `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`; `list_goals`, `get_goal`, `get_goal_stats`, `create_goal`, `update_goal`, `delete_goal`; `list_funnels`, `get_funnel`, `get_funnel_stats`, `create_funnel`, `update_funnel`, `delete_funnel`; `list_session_filter_values`, `list_sessions`, `get_session`, `list_session_events`; and `query_stats`.
+
+Goals support four types: `page`, `event`, `outbound`, and `scroll_depth`. The local MCP also returns dashboard-ready statistics for goals and funnels, and can discover the available values for Sessions filters. See the installed package README for each tool's complete input schema.
 
 Full client setup: [npm/@clicsdev/mcp](https://www.npmjs.com/package/@clicsdev/mcp)
 
@@ -129,6 +131,8 @@ clics logout
 ```bash
 clics projects list
 clics goals list <project-id>
+clics goals stats <goal-id> --date-range last30days --timezone UTC
+clics sessions filter-values <project-id> --field country --date-range last30days
 clics sessions list <project-id> --date-range last7days --limit 20
 clics sessions get <project-id> <session-id>
 clics sessions events <project-id> <session-id>

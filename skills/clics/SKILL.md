@@ -46,7 +46,7 @@ clics logout
 
 ## MCP tools (preferred)
 
-Server name: `clics`. Call tools directly; full input schemas are defined on each tool.
+Server name: `clics`. Call tools directly; full input schemas are defined on each tool. Confirm the connected server's tool list before calling it. The local `@clicsdev/mcp` server exposes the complete set below; if a connected MCP server does not offer a read operation, use the CLI rather than inventing a direct request.
 
 ### Projects
 
@@ -65,9 +65,22 @@ Server name: `clics`. Call tools directly; full input schemas are defined on eac
 | Tool | Key inputs |
 |------|------------|
 | `list_goals` | `project_id`, optional `env_id` |
-| `create_goal` | `project_id`, `goal_type` (`page`\|`event`), `display_name`, optional `env_id`, `page_path`, `event_name` |
-| `update_goal` | `goal_id`, `goal_type`, `display_name`, optional `page_path`, `event_name` |
+| `get_goal` | `goal_id` |
+| `get_goal_stats` | `goal_id`, optional `domain`, period, `timezone` (UTC by default), `referrer_ai_provider` |
+| `create_goal` | `project_id`, `goal_type` (`page`\|`event`\|`outbound`\|`scroll_depth`), `display_name`, `rule`, optional `env_id` |
+| `update_goal` | `goal_id`, optional `display_name`, `goal_type`, or partial `rule` |
 | `delete_goal` | `goal_id` |
+
+Use the rule that matches `goal_type`:
+
+| Goal type | Required rule |
+|-----------|---------------|
+| `page` | `{ "page_path": "/signup" }` |
+| `event` | `{ "event_name": "purchase" }` |
+| `outbound` | `{ "outbound_url": "https://partner.example.com/signup" }` |
+| `scroll_depth` | `{ "page_path": "/pricing", "scroll_depth_threshold": 75 }` |
+
+Use an exact HTTP(S) URL for an outbound goal. Use a whole scroll-depth percentage from `1` to `100`. When changing a goal's type, send the complete rule for the new type. `get_goal_stats` returns dashboard-ready `totals`, `comparison`, `series`, and `meta.timezone` for every goal type.
 
 ### Funnels
 
@@ -75,34 +88,39 @@ Server name: `clics`. Call tools directly; full input schemas are defined on eac
 |------|------------|
 | `list_funnels` | `project_id`, optional `env_id`, `cursor`, `limit` |
 | `get_funnel` | `funnel_id` |
+| `get_funnel_stats` | `funnel_id`, optional `domain`, period, `timezone` (UTC by default), `referrer_ai_provider` |
 | `create_funnel` | `project_id` + body (`name`, `conversion_window`, `steps`, optional `env_id`) |
 | `update_funnel` | `funnel_id` + body without `env_id` |
 | `delete_funnel` | `funnel_id` |
 
 ### Sessions
 
-Period presets match `query_stats` (`last24h`, `last7days`, …, `allTime`). Custom ranges: pass both `start` and `end`. Optional `domain` (`localhost` for development traffic only).
+Period presets match `query_stats` (`last24h`, `last7days`, …, `allTime`). For a custom range, pass both `start` and `end`. Pass an IANA `timezone` when calendar boundaries must use a local timezone; UTC is the default. Use optional `domain` to scope a site.
 
 | Tool | Key inputs |
 |------|------------|
-| `list_sessions` | `project_id`, optional `domain`, `date_range` (default `last7days`), `start`, `end`, `cursor`, `limit` |
-| `get_session` | `project_id`, `session_id`, optional `domain`, `date_range` (default `allTime`), `start`, `end` |
-| `list_session_events` | `project_id`, `session_id`, optional `domain`, `date_range` (default `allTime`), `start`, `end` |
+| `list_session_filter_values` | `project_id`, `field`, optional scope, `timezone`, `limit`; fields: `country`, `device`, `browser`, `os`, `page_entry`, `page_exit`, `referrer` |
+| `list_sessions` | `project_id`, optional `domain`, `date_range` (default `last7days`), `start`, `end`, `timezone`, `cursor`, `limit` |
+| `get_session` | `project_id`, `session_id`, optional `domain`, `date_range` (default `allTime`), `start`, `end`, `timezone` |
+| `list_session_events` | `project_id`, `session_id`, optional `domain`, `date_range` (default `allTime`), `start`, `end`, `timezone` |
 
 ### Stats
 
 | Tool | Key inputs |
 |------|------------|
-| `query_stats` | full Stats body: `project_id`, `metrics`, `date_range`, optional `domain`, `dimensions`, `filters`, `order_by`, `include`, `pagination` |
+| `query_stats` | full Stats body: `project_id`, `metrics`, `date_range`, optional `domain`, `timezone` (UTC by default), `dimensions`, `filters`, `order_by`, `include`, `pagination` |
 
 ```json
 {
   "project_id": "your_project_id",
   "metrics": ["visitors", "pageviews", "bounce_rate"],
   "date_range": "last30days",
+  "timezone": "UTC",
   "include": { "previous_period": true }
 }
 ```
+
+For `query_stats`, use one time dimension (`time`, `time:hour`, or `time:day`) or up to two breakdown dimensions. `event:name`, `event:outbound_url`, and `referrer:ai_provider` support event and AI analytics. Filters additionally support `event:goal`. For a custom stats range, set `date_range` to a two-item ISO date pair.
 
 Responses return JSON text in `content` and the same object in `structuredContent`. Failures set `isError: true`.
 
@@ -172,6 +190,25 @@ clics goals create <project-id> --goal-type page --display-name "Signup page" --
 clics goals create <project-id> --goal-type event --display-name "Purchase" --event-name purchase
 ```
 
+**Create** â€” outbound-link and scroll-depth goals:
+
+```bash
+clics goals create <project-id> --goal-type outbound --display-name "Documentation" --outbound-url https://example.com/docs
+clics goals create <project-id> --goal-type scroll_depth --display-name "Article 75%" --page-path /article --scroll-depth-threshold 75
+```
+
+Goal rules are type-specific: `page` requires `--page-path`; `event` requires `--event-name`; `outbound` requires an exact `--outbound-url`; and `scroll_depth` requires both `--page-path` and a whole `--scroll-depth-threshold` from `1` to `100`.
+
+**Statistics**
+
+```bash
+clics goals stats <goal-id> --date-range last30days --timezone UTC
+clics goals stats <goal-id> --start 2026-07-01 --end 2026-07-31 --timezone Europe/London
+clics goals stats <goal-id> --domain app.example.com --ai-provider chatgpt
+```
+
+`--ai-provider` accepts `chatgpt`, `claude`, `gemini`, `perplexity`, or `copilot`.
+
 Optional environment:
 
 ```bash
@@ -183,6 +220,8 @@ clics goals create <project-id> --goal-type page --display-name "Home" --page-pa
 ```bash
 clics goals update <goal-id> --goal-type page --display-name "Signup" --page-path /signup
 clics goals update <goal-id> --goal-type event --display-name "Purchase" --event-name purchase
+clics goals update <goal-id> --goal-type outbound --display-name "Partner signup" --outbound-url https://partner.example.com/signup
+clics goals update <goal-id> --goal-type scroll_depth --display-name "Read 75%" --page-path /pricing --scroll-depth-threshold 75
 ```
 
 **Delete**
@@ -208,6 +247,16 @@ clics funnels list <project-id> --cursor "<cursor>"
 ```bash
 clics funnels get <funnel-id>
 ```
+
+**Statistics**
+
+```bash
+clics funnels stats <funnel-id> --date-range last30days --timezone UTC
+clics funnels stats <funnel-id> --start 2026-07-01 --end 2026-07-31 --timezone Europe/London
+clics funnels stats <funnel-id> --domain app.example.com --ai-provider chatgpt
+```
+
+`--ai-provider` accepts `chatgpt`, `claude`, `gemini`, `perplexity`, or `copilot`.
 
 **Create**
 
@@ -253,18 +302,24 @@ clics funnels delete <funnel-id>
 **List**
 
 ```bash
+clics sessions filter-values <project-id> --field country --date-range last30days
+clics sessions filter-values <project-id> --field referrer --domain app.example.com --timezone Europe/London --limit 100
 clics sessions list <project-id>
 clics sessions list <project-id> --date-range last7days --limit 20
 clics sessions list <project-id> --domain example.com --date-range last30days
 clics sessions list <project-id> --start 2026-07-01 --end 2026-07-15
+clics sessions list <project-id> --date-range last30days --timezone Europe/London
 clics sessions list <project-id> --cursor "<cursor>"
 ```
+
+The available session-filter fields are `country`, `device`, `browser`, `os`, `page_entry`, `page_exit`, and `referrer`.
 
 **Get**
 
 ```bash
 clics sessions get <project-id> <session-id>
 clics sessions get <project-id> <session-id> --date-range last30days
+clics sessions get <project-id> <session-id> --timezone Europe/London
 ```
 
 **Events**
@@ -272,6 +327,7 @@ clics sessions get <project-id> <session-id> --date-range last30days
 ```bash
 clics sessions events <project-id> <session-id>
 clics sessions events <project-id> <session-id> --domain localhost
+clics sessions events <project-id> <session-id> --timezone Europe/London
 ```
 
 ### Query analytics
@@ -296,6 +352,7 @@ clics query <project-id> --metrics visitors --date-range allTime
 
 ```bash
 clics query <project-id> --metrics visitors pageviews bounce_rate --date-range last30days
+clics query <project-id> --metrics visitors pageviews --date-range last30days --timezone Europe/London
 ```
 
 **Comparison / totals**
@@ -318,6 +375,14 @@ Use `--domain localhost` for development traffic only.
 clics query <project-id> --metrics visitors pageviews --date-range last30days --dimensions visit:country
 ```
 
+**Events and AI analytics**
+
+```bash
+clics query <project-id> --metrics visitors events conversion_rate --date-range last30days --dimensions event:name
+clics query <project-id> --metrics visitors events conversion_rate --date-range last30days --dimensions event:outbound_url
+clics query <project-id> --metrics visitors pageviews --date-range last30days --dimensions referrer:ai_provider
+```
+
 **Pagination**
 
 ```bash
@@ -336,6 +401,7 @@ Example `query.json`:
 {
   "metrics": ["visitors", "pageviews", "bounce_rate"],
   "date_range": "last30days",
+  "timezone": "Europe/London",
   "dimensions": ["visit:country"],
   "filters": [["is", "visit:country", ["US", "FR"]]],
   "order_by": [["visitors", "desc"]],
@@ -359,7 +425,9 @@ Example `query.json`:
 
 **Allowed date ranges:** `last24h` · `last7days` · `last30days` · `last3months` · `last12months` · `monthToDate` · `quarterToDate` · `yearToDate` · `allTime` (custom ISO pairs via `--file`)
 
-**Allowed dimensions:** `event:page` · `event:hostname` · `visit:country` · `visit:device` · `visit:browser` · `visit:os` · `visit:referrer` · `visit:utm_source` · `visit:utm_medium` · `visit:utm_campaign` · `visit:utm_term` · `visit:utm_content` · `time` · `time:hour` · `time:day`
+**Allowed dimensions:** `event:page` · `event:hostname` · `event:name` · `event:outbound_url` · `visit:country` · `visit:device` · `visit:browser` · `visit:os` · `visit:referrer` · `referrer:ai_provider` · `visit:utm_source` · `visit:utm_medium` · `visit:utm_campaign` · `visit:utm_term` · `visit:utm_content` · `time` · `time:hour` · `time:day`
+
+**Additional filter-only dimension:** `event:goal`.
 
 ### Scripting
 
@@ -387,18 +455,20 @@ Prefer `--body @file.json` / `--file file.json` over inline JSON (especially on 
 
 ### 3. Goals and funnels check
 
-1. Run `list_goals` or `clics goals list <project-id>` (add `--env-id development` if needed).
+1. Run `list_goals` or `clics goals list <project-id>` (add `--env-id development` if needed), then inspect one with `get_goal` / `clics goals get <goal-id>` when its exact rule matters.
 2. Run `list_funnels` or `clics funnels list <project-id>`.
 3. Optionally run `get_funnel` or `clics funnels get <funnel-id>` for step details.
-4. Report what is configured. Do not create or delete resources unless the user asked.
+4. Run `get_goal_stats` / `clics goals stats <goal-id>` or `get_funnel_stats` / `clics funnels stats <funnel-id>` when the user asks for performance, rather than attempting to reconstruct it from raw rows.
+5. Report what is configured. Do not create or delete resources unless the user asked.
 
 
 ### 4. Inspect recent sessions
 
 1. Resolve `project_id` as above.
-2. Run `list_sessions` or `clics sessions list <project-id> --date-range last7days --limit 20`.
-3. Pick a `session_id`, then `get_session` / `clics sessions get <project-id> <session-id>` and `list_session_events` / `clics sessions events <project-id> <session-id>`.
-4. Summarize landing/exit, bounce, duration, and notable events. Do not invent session IDs.
+2. Use `list_session_filter_values` / `clics sessions filter-values <project-id> --field <field>` first when you need to discover valid session-filter values.
+3. Run `list_sessions` or `clics sessions list <project-id> --date-range last7days --limit 20`.
+4. Pick a `session_id`, then `get_session` / `clics sessions get <project-id> <session-id>` and `list_session_events` / `clics sessions events <project-id> <session-id>`.
+5. Summarize landing/exit, bounce, duration, and notable events. Do not invent session IDs.
 
 ## Manual verification
 
