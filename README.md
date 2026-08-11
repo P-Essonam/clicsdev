@@ -10,59 +10,63 @@ Clics measures traffic, goals, funnels, and sessions on your sites. This reposit
 
 ## What you get
 
-| Tool | Package / endpoint | Best for |
-|------|-------------------|----------|
-| **Remote MCP** | Hosted endpoint (see below) | ChatGPT, Claude.ai, n8n, and other HTTP MCP clients |
-| **Local MCP** | [`@clicsdev/mcp`](https://www.npmjs.com/package/@clicsdev/mcp) | Cursor, Claude Code, VS Code, Windsurf, and other stdio MCP clients |
-| **CLI** | [`@clicsdev/cli`](https://www.npmjs.com/package/@clicsdev/cli) | Scripts, CI, and manual verification from the terminal |
-| **Agent skill** | this repo | Teaching agents when and how to use Clics MCP + CLI |
+| Tool             | Package / endpoint                                             | Best for                                                            |
+| ---------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **Clics plugin** | Available from Plugins                                         | ChatGPT and Codex                                                   |
+| **Remote MCP**   | Hosted endpoint (see below)                                    | Claude.ai and other signed-in HTTP MCP clients                      |
+| **Local MCP**    | [`@clicsdev/mcp`](https://www.npmjs.com/package/@clicsdev/mcp) | Cursor, Claude Code, VS Code, Windsurf, and other stdio MCP clients |
+| **CLI**          | [`@clicsdev/cli`](https://www.npmjs.com/package/@clicsdev/cli) | Scripts, CI, and manual verification from the terminal              |
+| **Agent skill**  | this repo                                                      | Teaching agents when and how to use Clics MCP + CLI                 |
 
-Create an API key in the [dashboard](https://platform.clics.dev).
+Create an API key in the [dashboard](https://platform.clics.dev) for the local MCP or CLI.
 
 ---
 
 ## Remote MCP
 
-Hosted [Model Context Protocol](https://modelcontextprotocol.io) server over HTTP Streamable. Use this when your assistant runs in the browser or in a workflow tool and cannot run a local `npx` process.
+Hosted [Model Context Protocol](https://modelcontextprotocol.io) server over HTTP Streamable. Use it with clients such as Claude.ai that support signed-in remote MCP connectors.
 
-**Endpoint** (replace `YOUR_API_KEY` with your Clics API key):
+**Endpoint:**
 
 ```
-https://api.clics.dev/YOUR_API_KEY/v1/mcp
+https://api.clics.dev/v1/mcp
 ```
 
-The API key is embedded in the URL. Set authentication to **None** in the client; no extra headers are required.
+Compatible clients discover the sign-in flow automatically. Sign in to Clics and select the workspace you want to connect; no API key is required.
 
 **Tools:** 18 core workspace tools: `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `list_sessions`, `get_session`, `list_session_events`, and `query_stats`.
 
 ### ChatGPT
 
-1. Create an API key in the [dashboard](https://platform.clics.dev).
-2. In ChatGPT, open **Settings** → **Advanced Settings** and enable **Developer mode**.
-3. Open **Apps & Connectors** → **Create**.
-4. Fill in:
-   - **Name:** `Clics MCP`
-   - **MCP Server URL:** `https://api.clics.dev/YOUR_API_KEY/v1/mcp`
-   - **Authentication:** `None`
-5. Save and enable the connector in a conversation.
+1. Open **Plugins** in ChatGPT.
+2. Search for **Clics** and click **Add**.
+3. Click **Connect**, sign in to Clics, and select your workspace.
+4. Start a conversation and select Clics when you want to use your analytics.
+
+### Codex
+
+1. Open **Plugins** in Codex.
+2. Search for **Clics** and click **Add**.
+3. Click **Connect**, sign in to Clics, and select your workspace.
+4. Start a task and ask Codex to use Clics.
 
 ### Claude.ai
 
-1. Create an API key in the [dashboard](https://platform.clics.dev).
-2. Go to **Settings** → **Connectors** → **Add custom connector**.
-3. Set **URL** to `https://api.clics.dev/YOUR_API_KEY/v1/mcp` (leave OAuth fields blank).
-4. In a conversation, enable the connector from **Connectors**.
+1. Go to **Settings** → **Connectors** → **Add custom connector**.
+2. Enter `Clics` as the name and `https://api.clics.dev/v1/mcp` as the remote MCP server URL.
+3. Leave the optional advanced fields empty and click **Add**.
+4. Find Clics in the connectors list and click **Connect**.
+5. Sign in to Clics, select your workspace, and enable the connector in a conversation.
 
 ### n8n
 
-1. Create an API key in the [dashboard](https://platform.clics.dev).
-2. In your workflow, add an **AI Agent** node.
-3. Add a tool → **MCP Client Tool**.
-4. Configure:
-   - **Endpoint:** `https://api.clics.dev/YOUR_API_KEY/v1/mcp`
+1. In your workflow, add an **AI Agent** node.
+2. Add a tool → **MCP Client Tool**.
+3. Configure:
+   - **Endpoint:** `https://api.clics.dev/v1/mcp`
    - **Server Transport:** `HTTP Streamable`
-   - **Authentication:** `None`
-5. Choose which tools to expose (All, Selected, or All Except).
+   - **Authentication:** use the client’s sign-in option
+4. Sign in to Clics, select your workspace, and choose which tools to expose.
 
 ---
 
