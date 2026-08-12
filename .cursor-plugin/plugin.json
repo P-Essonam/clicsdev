@@ -1,0 +1,23 @@
+{
+  "name": "clics",
+  "displayName": "Clics",
+  "version": "1.0.0",
+  "description": "Explore website traffic, visitor journeys, goals, and funnels with Clics.",
+  "author": {
+    "name": "Clics",
+    "email": "contact@clics.dev"
+  },
+  "homepage": "https://clics.dev",
+  "repository": "https://github.com/P-Essonam/clicsdev",
+  "license": "MIT",
+  "keywords": [
+    "analytics",
+    "website-analytics",
+    "traffic",
+    "funnels",
+    "conversions"
+  ],
+  "logo": "assets/icon-clics-light.png",
+  "skills": "cursor-skills/",
+  "mcpServers": "mcp.json"
+}

@@ -12,9 +12,10 @@ Clics measures traffic, goals, funnels, and sessions on your sites. This reposit
 
 | Tool             | Package / endpoint                                             | Best for                                                            |
 | ---------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **Clics plugin** | Available from Plugins                                         | ChatGPT and Codex                                                   |
-| **Remote MCP**   | Hosted endpoint (see below)                                    | Claude.ai and other signed-in HTTP MCP clients                      |
-| **Local MCP**    | [`@clicsdev/mcp`](https://www.npmjs.com/package/@clicsdev/mcp) | Cursor, Claude Code, VS Code, Windsurf, and other stdio MCP clients |
+| **Clics plugin**  | Available from Plugins                                         | ChatGPT and Codex                                                   |
+| **Cursor plugin** | This repository                                                | Cursor                                                             |
+| **Remote MCP**    | Hosted endpoint (see below)                                    | Claude.ai and other signed-in HTTP MCP clients                      |
+| **Local MCP**     | [`@clicsdev/mcp`](https://www.npmjs.com/package/@clicsdev/mcp) | Claude Code, VS Code, Windsurf, and other stdio MCP clients         |
 | **CLI**          | [`@clicsdev/cli`](https://www.npmjs.com/package/@clicsdev/cli) | Scripts, CI, and manual verification from the terminal              |
 | **Agent skill**  | this repo                                                      | Teaching agents when and how to use Clics MCP + CLI                 |
 
@@ -49,6 +50,17 @@ Compatible clients discover the sign-in flow automatically. Sign in to Clics and
 2. Search for **Clics** and click **Add**.
 3. Click **Connect**, sign in to Clics, and select your workspace.
 4. Start a task and ask Codex to use Clics.
+
+### Cursor
+
+1. Open **Customize** in Cursor and search the Marketplace for **Clics**.
+2. Install the Clics plugin.
+3. Connect Clics and sign in.
+4. Ask Cursor to analyze your traffic, pages, goals, funnels, or visitor journeys.
+
+The Cursor plugin bundles the hosted Clics MCP server with the Clics analytics skill. No API key or local MCP process is required.
+
+Cursor plugin skill source: [`cursor-skills/clics/SKILL.md`](cursor-skills/clics/SKILL.md)
 
 ### Claude.ai
 

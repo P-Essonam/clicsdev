@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "clics": {
+      "url": "https://api.clics.dev/v1/mcp"
+    }
+  }
+}

@@ -1,18 +1,19 @@
 ---
 name: clics
-description: Query Clics analytics and manage projects, goals, funnels, and sessions through the Clics MCP server (`@clicsdev/mcp`), with the `clics` CLI (`@clicsdev/cli`) as a fallback. Use when a user asks about their analytics, mentions Clics, works with the Clics toolset, verifies Clics manually, or needs to choose between MCP and CLI.
+description: Query Clics analytics and manage projects, goals, funnels, and sessions through a connected Clics MCP server, with the `clics` CLI (`@clicsdev/cli`) as a fallback. Use when a user asks about website analytics, mentions Clics, works with the Clics toolset, or needs to inspect traffic, conversions, or visitor journeys.
 ---
 
 # Clics
 
-Clics is privacy-friendly, cookieless web analytics. Agents manage projects, goals, funnels, sessions, and analytics stats in two ways:
+Clics is privacy-friendly, cookieless web analytics. Agents manage projects, goals, funnels, sessions, and analytics stats in three ways:
 
-- **MCP tools** (`clics` server via `@clicsdev/mcp`) — preferred for agents.
+- **Hosted MCP tools** (`clics` server) — preferred when installed through a plugin or remote connector.
+- **Local MCP tools** (`@clicsdev/mcp`) — for clients configured to run a local process.
 - **CLI** (`@clicsdev/cli`, binary `clics`) — fallback when MCP is unavailable, for manual verification, or for scripts and CI.
 
 ## Choosing MCP vs CLI
 
-Prefer **MCP tools** whenever the `clics` MCP server is connected — no shell is required, and the API key is supplied by the MCP client environment.
+Prefer **MCP tools** whenever the `clics` MCP server is connected. No shell is required. Hosted connections authenticate through the Clics sign-in flow; local connections receive an API key from the MCP client environment.
 
 Use the **CLI** when:
 
@@ -22,13 +23,15 @@ Use the **CLI** when:
 
 ## Authentication
 
-**MCP** — set in the MCP client config (never pass the API key as a tool argument):
+**Hosted MCP** — connect and sign in when prompted. Do not ask the user for an API key.
+
+**Local MCP** — set the API key in the MCP client config (never pass it as a tool argument):
 
 ```bash
 CLICS_API_KEY=your_api_key
 ```
 
-Typical Cursor setup: `npx -y @clicsdev/mcp` with that environment variable.
+Typical local setup: `npx -y @clicsdev/mcp` with that environment variable.
 
 **CLI** — one-time local configuration (stored in `~/.config/clics/`):
 
