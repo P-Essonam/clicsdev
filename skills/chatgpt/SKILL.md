@@ -123,19 +123,34 @@ Use `query_stats` for dashboard-style analytics.
 
 Main input:
 
-- `project_id`
-- `date_range`
-- optional `metrics`
-- optional `dimensions`
-- optional `filters`
-- optional `domain`
-- optional `timezone`
+- `project_id`: required Clics project ID.
+- `metrics`: required non-empty array of metric enums.
+- `date_range`: required period preset string, or `[start, end]` ISO8601 pair.
+- `domain`: optional domain filter. Schemes, paths, and ports are stripped by the API. Omit it for all production domains, or pass `localhost` for development traffic.
+- `timezone`: optional IANA timezone. Defaults to `UTC`.
+- `dimensions`: optional grouping. Use one time dimension, or up to two non-time breakdown dimensions.
+- `filters`: optional tuples in `[operator, dimension, values]` format.
+- `order_by`: optional tuples in `[field, direction]` format.
+- `include`: optional object with `previous_period` and `total_rows`.
+- `pagination`: optional object with `limit` and `offset`.
 
 Metrics:
 
 ```txt
 visitors, visits, pageviews, bounce_rate, visit_duration,
 views_per_visit, conversion_rate, events
+```
+
+KPI and time-series metrics:
+
+```txt
+visitors, visits, pageviews, bounce_rate, visit_duration, views_per_visit
+```
+
+Breakdown metrics:
+
+```txt
+visitors, pageviews, conversion_rate, events
 ```
 
 Dimensions:
@@ -149,6 +164,15 @@ visit:utm_content,
 time, time:hour, time:day
 ```
 
+Time dimension presets:
+
+```txt
+time, time:hour, time:day
+```
+
+Use only one time dimension at a time. Do not combine a time dimension with
+breakdown dimensions.
+
 Filter-only dimension:
 
 ```txt
@@ -160,6 +184,57 @@ Stats filter operators:
 ```txt
 is, is_not, contains, contains_not
 ```
+
+Stats filter shape:
+
+```json
+["is", "visit:country", ["US", "FR"]]
+```
+
+The first item is the operator, the second item is a filter dimension, and the
+third item is a string array of accepted values.
+
+Stats filter dimensions:
+
+```txt
+event:page, event:hostname, event:goal, event:name, event:outbound_url,
+visit:country, visit:device, visit:browser, visit:os, visit:referrer,
+referrer:ai_provider,
+visit:utm_source, visit:utm_medium, visit:utm_campaign, visit:utm_term,
+visit:utm_content
+```
+
+Stats order shape:
+
+```json
+["visitors", "desc"]
+```
+
+The first item is any metric or query dimension. The second item is `asc` or
+`desc`.
+
+Stats include shape:
+
+```json
+{
+  "previous_period": true,
+  "total_rows": true
+}
+```
+
+`previous_period` is useful for KPI queries without dimensions. `total_rows` is
+useful with paginated breakdowns.
+
+Stats pagination shape:
+
+```json
+{
+  "limit": 50,
+  "offset": 0
+}
+```
+
+`limit` must be between 1 and 1000. `offset` must be 0 or greater.
 
 Example:
 
@@ -434,6 +509,30 @@ For a custom session range, pass both `start` and `end`; when both are set,
 `query_stats` takes the full stats request body. `date_range` is either a
 preset string or a two-item `[start, end]` ISO8601 array.
 
+Complete accepted input fields:
+
+```txt
+project_id, domain, timezone, metrics, date_range, dimensions, filters,
+order_by, include, pagination
+```
+
+Stats date range presets:
+
+```txt
+last24h, last7days, last30days, last3months, last12months,
+monthToDate, quarterToDate, yearToDate, allTime
+```
+
+Stats time dimension presets:
+
+```txt
+time, time:hour, time:day
+```
+
+Use `time:hour` for hourly series, `time:day` for daily series, and `time`
+only when the dashboard-level aggregate time bucket is wanted. Do not combine
+these with country/device/page/referrer/event breakdown dimensions.
+
 KPI query:
 
 ```json
@@ -446,6 +545,19 @@ KPI query:
   "include": {
     "previous_period": true
   }
+}
+```
+
+Time-series query:
+
+```json
+{
+  "project_id": "project_123",
+  "timezone": "Europe/Paris",
+  "metrics": ["visitors", "visits", "pageviews"],
+  "date_range": "last7days",
+  "dimensions": ["time:day"],
+  "order_by": [["time:day", "asc"]]
 }
 ```
 
