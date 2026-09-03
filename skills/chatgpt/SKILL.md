@@ -63,9 +63,9 @@ Use goals to track conversions.
 | Tool | Use it for | Main input |
 | --- | --- | --- |
 | `list_goals` | List goals for a project. | `project_id` |
-| `create_goal` | Create a conversion goal. | `project_id`, `name`, `type`, `rule` |
-| `update_goal` | Update a goal. | `project_id`, `goal_id`, optional fields |
-| `delete_goal` | Delete a goal. | `project_id`, `goal_id` |
+| `create_goal` | Create a conversion goal. | `project_id`, `env_id`, `goal_type`, `display_name`, `rule` |
+| `update_goal` | Update a goal. | `goal_id`, optional `display_name`, `goal_type`, `rule` |
+| `delete_goal` | Delete a goal. | `goal_id` |
 
 Goal types and rules:
 
@@ -83,10 +83,10 @@ Use funnels to measure ordered conversion paths.
 | Tool | Use it for | Main input |
 | --- | --- | --- |
 | `list_funnels` | List funnels for a project. | `project_id` |
-| `get_funnel` | Inspect one funnel definition. | `project_id`, `funnel_id` |
+| `get_funnel` | Inspect one funnel definition. | `funnel_id` |
 | `create_funnel` | Create a funnel with ordered steps. | `project_id`, `name`, `steps`, optional conversion window and filters |
-| `update_funnel` | Update a funnel definition. | `project_id`, `funnel_id`, optional fields |
-| `delete_funnel` | Delete a funnel. | `project_id`, `funnel_id` |
+| `update_funnel` | Update a funnel definition. | `funnel_id`, optional `name`, `conversion_window`, `steps` |
+| `delete_funnel` | Delete a funnel. | `funnel_id` |
 
 Funnel conversion window units:
 
@@ -113,21 +113,9 @@ Use sessions to inspect individual visits and their events.
 
 | Tool | Use it for | Main input |
 | --- | --- | --- |
-| `list_sessions` | List recent sessions with optional filters. | `project_id`, optional pagination, filters, date range |
+| `list_sessions` | List recent sessions with optional domain, date range, and pagination. | `project_id`, optional `domain`, `date_range`, `start`, `end`, `cursor`, `limit` |
 | `get_session` | Inspect one session. | `project_id`, `session_id` |
 | `list_session_events` | List events in one session. | `project_id`, `session_id` |
-
-Session filter fields:
-
-```txt
-country, device, browser, os, page_entry, page_exit, referrer
-```
-
-Session filter operators:
-
-```txt
-is, is_not
-```
 
 ### Stats
 
@@ -136,11 +124,11 @@ Use `query_stats` for dashboard-style analytics.
 Main input:
 
 - `project_id`
-- `env_id`, usually `production`
 - `date_range`
 - optional `metrics`
 - optional `dimensions`
 - optional `filters`
+- optional `domain`
 - optional `timezone`
 
 Metrics:
@@ -178,7 +166,6 @@ Example:
 ```json
 {
   "project_id": "project_123",
-  "env_id": "production",
   "date_range": "last7days",
   "metrics": ["visitors", "pageviews"],
   "dimensions": ["time:day"],
@@ -197,7 +184,7 @@ Main input:
 - optional `date_range`
 - optional `timezone`
 - optional filters: `category`, `provider`, `crawler`, `status`
-- optional operators for filters
+- optional operators: `provider_op`, `crawler_op`, `status_op`
 
 AI crawler categories:
 
@@ -244,9 +231,271 @@ Example:
   "date_range": "last30days",
   "timezone": "Europe/Paris",
   "provider": "OpenAI",
-  "provider_operator": "is",
+  "provider_op": "is",
+  "category": "answer_fetch"
+}
+```
+
+## Input Shapes
+
+These examples mirror the remote MCP tool schemas. Use the live tool schema as
+the final source of truth if ChatGPT shows a field-level schema.
+
+### Project Inputs
+
+`list_projects` accepts optional pagination:
+
+```json
+{
+  "limit": 20,
+  "cursor": "next_cursor"
+}
+```
+
+`get_project` and `delete_project`:
+
+```json
+{
+  "project_id": "project_123"
+}
+```
+
+`create_project`:
+
+```json
+{
+  "name": "Acme Marketing",
+  "website_url": "example.com",
+  "allow_localhost": false
+}
+```
+
+`update_project` requires `project_id` and at least one field to change:
+
+```json
+{
+  "project_id": "project_123",
+  "name": "Acme",
+  "website_url": "acme.com",
+  "allow_localhost": true
+}
+```
+
+### Goal Inputs
+
+`list_goals`:
+
+```json
+{
+  "project_id": "project_123",
+  "env_id": "production"
+}
+```
+
+`create_goal` uses `display_name` and `goal_type`:
+
+```json
+{
+  "project_id": "project_123",
+  "env_id": "production",
+  "display_name": "Signup",
+  "goal_type": "page",
+  "rule": {
+    "page_path": "/signup"
+  }
+}
+```
+
+`update_goal` does not take `project_id`. Pass `goal_id` and at least one field:
+
+```json
+{
+  "goal_id": "goal_123",
+  "display_name": "Trial signup",
+  "rule": {
+    "page_path": "/thank-you"
+  }
+}
+```
+
+`delete_goal`:
+
+```json
+{
+  "goal_id": "goal_123"
+}
+```
+
+### Funnel Inputs
+
+`list_funnels` accepts optional pagination:
+
+```json
+{
+  "project_id": "project_123",
+  "env_id": "production",
+  "limit": 20,
+  "cursor": "next_cursor"
+}
+```
+
+`get_funnel` and `delete_funnel` use only `funnel_id`:
+
+```json
+{
+  "funnel_id": "funnel_123"
+}
+```
+
+`create_funnel` requires at least two ordered steps. Each step needs a name and
+at least one filter:
+
+```json
+{
+  "project_id": "project_123",
+  "env_id": "production",
+  "name": "Checkout",
+  "conversion_window": {
+    "value": 7,
+    "unit": "days"
+  },
+  "steps": [
+    {
+      "name": "Cart",
+      "filters": [
+        {
+          "filter_type": "page",
+          "operator": "is",
+          "values": ["/cart"]
+        }
+      ]
+    },
+    {
+      "name": "Purchase",
+      "filters": [
+        {
+          "filter_type": "page",
+          "operator": "is",
+          "values": ["/thanks"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+`update_funnel` does not take `project_id`. Pass `funnel_id` and at least one
+field:
+
+```json
+{
+  "funnel_id": "funnel_123",
+  "name": "Updated checkout"
+}
+```
+
+### Session Inputs
+
+`list_sessions`:
+
+```json
+{
+  "project_id": "project_123",
+  "domain": "example.com",
+  "date_range": "last7days",
+  "limit": 20,
+  "cursor": "next_cursor"
+}
+```
+
+For a custom session range, pass both `start` and `end`; when both are set,
+`date_range` is ignored:
+
+```json
+{
+  "project_id": "project_123",
+  "start": "2026-09-01",
+  "end": "2026-09-03"
+}
+```
+
+`get_session` and `list_session_events`:
+
+```json
+{
+  "project_id": "project_123",
+  "session_id": "session_123",
+  "date_range": "allTime"
+}
+```
+
+### Stats Inputs
+
+`query_stats` takes the full stats request body. `date_range` is either a
+preset string or a two-item `[start, end]` ISO8601 array.
+
+KPI query:
+
+```json
+{
+  "project_id": "project_123",
+  "domain": "example.com",
+  "timezone": "Europe/Paris",
+  "metrics": ["visitors", "pageviews", "bounce_rate"],
+  "date_range": "last30days",
+  "include": {
+    "previous_period": true
+  }
+}
+```
+
+Breakdown query with filters, sort, and pagination:
+
+```json
+{
+  "project_id": "project_123",
+  "metrics": ["visitors", "pageviews"],
+  "date_range": ["2026-09-01T00:00:00Z", "2026-09-03T23:59:59Z"],
+  "dimensions": ["visit:country"],
+  "filters": [["is", "visit:device", ["desktop"]]],
+  "order_by": [["visitors", "desc"]],
+  "pagination": {
+    "limit": 50,
+    "offset": 0
+  }
+}
+```
+
+### AI Crawler Inputs
+
+`get_ai_crawler_analytics` uses production implicitly. `provider` and `crawler`
+may be a single enum value or a non-empty array of enum values. Use
+`provider_op`, `crawler_op`, and `status_op` for filter operators.
+
+```json
+{
+  "project_id": "project_123",
+  "date_range": "last30days",
+  "timezone": "Europe/Paris",
   "category": "answer_fetch",
-  "category_operator": "is"
+  "provider": ["OpenAI", "Anthropic"],
+  "provider_op": "is",
+  "crawler": "GPTBot",
+  "crawler_op": "is_not",
+  "status": "200",
+  "status_op": "is",
+  "breakdown_limit": 50,
+  "filter_values_limit": 200
+}
+```
+
+For a custom AI crawler range, pass `start` and `end`:
+
+```json
+{
+  "project_id": "project_123",
+  "start": "2026-09-01T00:00:00Z",
+  "end": "2026-09-03T23:59:59Z"
 }
 ```
 
@@ -258,7 +507,9 @@ Environment values:
 production, development
 ```
 
-Default to `production` when the user does not specify an environment.
+`env_id` is used by goals and funnels. Default to `production` when the user
+does not specify an environment. `query_stats` does not take `env_id`; use its
+`domain` field, or pass `localhost` as the domain for development traffic.
 
 Date range presets:
 
@@ -347,7 +598,9 @@ When reporting analytics, state:
 - date range
 - timezone when provided
 - filters applied
-- environment, except for AI crawler analytics where production is implied
+- environment when the tool accepts `env_id`
+- domain when the tool accepts `domain`
+- for AI crawler analytics, production is implied
 
 When a result is empty, say whether the workspace has no project, the project
 has no data for that date range, or the filters removed all rows.
