@@ -1,19 +1,18 @@
 ---
 name: clics
-description: Query Clics analytics and manage projects, goals, funnels, and sessions through a connected Clics MCP server, with the `clics` CLI (`@clicsdev/cli`) as a fallback. Use when a user asks about website analytics, mentions Clics, works with the Clics toolset, or needs to inspect traffic, conversions, or visitor journeys.
+description: Query Clics analytics and manage projects, goals, funnels, and sessions through the Clics MCP server (`@clicsdev/mcp`), with the `clics` CLI (`@clicsdev/cli`) as a fallback. Use when a user asks about their analytics, mentions Clics, works with the Clics toolset, verifies Clics manually, or needs to choose between MCP and CLI.
 ---
 
 # Clics
 
-Clics is privacy-friendly, cookieless web analytics. Agents manage projects, goals, funnels, sessions, and analytics stats in three ways:
+Clics is privacy-friendly, cookieless web analytics. Agents manage projects, goals, funnels, sessions, AI crawlers, and analytics stats in two ways:
 
-- **Hosted MCP tools** (`clics` server) — preferred when installed through a plugin or remote connector.
-- **Local MCP tools** (`@clicsdev/mcp`) — for clients configured to run a local process.
+- **MCP tools** (`clics` server via `@clicsdev/mcp`) — preferred for agents.
 - **CLI** (`@clicsdev/cli`, binary `clics`) — fallback when MCP is unavailable, for manual verification, or for scripts and CI.
 
 ## Choosing MCP vs CLI
 
-Prefer **MCP tools** whenever the `clics` MCP server is connected. No shell is required. Hosted connections authenticate through the Clics sign-in flow; local connections receive an API key from the MCP client environment.
+Prefer **MCP tools** whenever the `clics` MCP server is connected — no shell is required, and the API key is supplied by the MCP client environment.
 
 Use the **CLI** when:
 
@@ -23,15 +22,13 @@ Use the **CLI** when:
 
 ## Authentication
 
-**Hosted MCP** — connect and sign in when prompted. Do not ask the user for an API key.
-
-**Local MCP** — set the API key in the MCP client config (never pass it as a tool argument):
+**MCP** — set in the MCP client config (never pass the API key as a tool argument):
 
 ```bash
 CLICS_API_KEY=your_api_key
 ```
 
-Typical local setup: `npx -y @clicsdev/mcp` with that environment variable.
+Typical Cursor setup: `npx -y @clicsdev/mcp` with that environment variable.
 
 **CLI** — one-time local configuration (stored in `~/.config/clics/`):
 
@@ -60,6 +57,56 @@ Server name: `clics`. Call tools directly; full input schemas are defined on eac
 | `create_project` | `name`, `website_url`, optional `allow_localhost` |
 | `update_project` | `project_id`, optional `name`, `website_url`, `allow_localhost` |
 | `delete_project` | `project_id` |
+
+### Empty workspace setup
+
+If `list_projects` returns no projects, do not continue with stats, sessions,
+goals, funnels, or AI crawler analytics. Ask the user for:
+
+- project name
+- production website domain
+- whether localhost tracking should be allowed for development
+
+Then create the project with `create_project` or:
+
+```bash
+clics projects create --name "<project-name>" --website-url "<domain>"
+```
+
+If the user wants localhost tracking, add `--allow-localhost`.
+
+After the project is created, help the user set up browser tracking. Read
+`https://docs.clics.dev/installation-guides`, choose the section that matches
+the user's framework, and give them the browser tracking snippet with the
+returned `project_id` already filled in:
+
+```html
+<script
+  defer
+  data-project-id="<project_id>"
+  src="https://clics.dev/tracker.js"
+></script>
+```
+
+For Next.js, use the same `project_id` in `next/script`:
+
+```tsx
+<Script
+  strategy="afterInteractive"
+  src="https://clics.dev/tracker.js"
+  data-project-id="<project_id>"
+/>
+```
+
+Ask where the code should be installed when the framework or entry file is not
+clear. Help the user place the snippet in the correct file, then tell them how
+to verify the first pageview in the dashboard.
+
+For AI crawler tracking, do not invent a crawler snippet. It uses a separate
+server-side setup. Read
+`https://docs.clics.dev/installation-guides/ai-crawler-tracking`, identify the
+right section for the user's runtime, then help them add the server-side
+tracking code and required project-scoped crawler token.
 
 ### Goals
 
@@ -106,6 +153,32 @@ Period presets match `query_stats` (`last24h`, `last7days`, …, `allTime`). For
 | `list_sessions` | `project_id`, optional `domain`, `date_range` (default `last7days`), `start`, `end`, `timezone`, `cursor`, `limit` |
 | `get_session` | `project_id`, `session_id`, optional `domain`, `date_range` (default `allTime`), `start`, `end`, `timezone` |
 | `list_session_events` | `project_id`, `session_id`, optional `domain`, `date_range` (default `allTime`), `start`, `end`, `timezone` |
+
+### AI crawlers
+
+AI crawler analytics always query production. Period presets match
+`query_stats`; for a custom range, pass both `start` and `end`.
+
+| Tool | Key inputs |
+|------|------------|
+| `get_ai_crawler_analytics` | `project_id`, optional `date_range` (default `last7days`), `start`, `end`, `timezone`, `category`, `provider`, `provider_op`, `crawler`, `crawler_op`, `status`, `status_op`, `breakdown_limit`, `filter_values_limit` |
+
+`category` is `answer_fetch`, `search_index`, or `training`. `provider` and
+`crawler` are enum values from the supported crawler registry and can be passed
+as one value or a list. `status` is still a status-code string such as `200` or
+`404`; `0` means unknown. Filter operators are `is` or `is_not`.
+
+Providers: `OpenAI`, `Anthropic`, `Perplexity`, `Google`, `Microsoft`,
+`Mistral`, `Amazon`, `DuckDuckGo`, `Apple`, `Moonshot AI`, `Common Crawl`.
+
+Crawlers: `ChatGPT-User`, `OAI-SearchBot`, `GPTBot`, `Claude-User`,
+`Claude-SearchBot`, `ClaudeBot`, `Perplexity-User`, `PerplexityBot`,
+`Google-Agent`, `Google-GeminiNotebook`, `Google-NotebookLM`,
+`Google-Read-Aloud`, `Google-InspectionTool`, `Googlebot`, `GoogleOther`,
+`Google-CloudVertexBot`, `Bingbot`, `msnbot`, `MistralAI-User`,
+`MistralAI-Index`, `Amzn-User`, `Amzn-SearchBot`, `Amazonbot`,
+`DuckAssistBot`, `Applebot`, `Kimi-User`, `Kimi-SearchBot`, `KimiBot`,
+`CCBot`.
 
 ### Stats
 
@@ -333,6 +406,14 @@ clics sessions events <project-id> <session-id> --domain localhost
 clics sessions events <project-id> <session-id> --timezone Europe/London
 ```
 
+### AI crawlers
+
+```bash
+clics ai-crawlers <project-id>
+clics ai-crawlers <project-id> --date-range last30days --timezone Europe/London
+clics ai-crawlers <project-id> --category training --provider OpenAI --provider-op is_not
+```
+
 ### Query analytics
 
 `--metrics` and `--date-range` are required (unless using `--file`).
@@ -473,6 +554,13 @@ Prefer `--body @file.json` / `--file file.json` over inline JSON (especially on 
 4. Pick a `session_id`, then `get_session` / `clics sessions get <project-id> <session-id>` and `list_session_events` / `clics sessions events <project-id> <session-id>`.
 5. Summarize landing/exit, bounce, duration, and notable events. Do not invent session IDs.
 
+### 5. Inspect AI crawler activity
+
+1. Resolve `project_id` as above.
+2. Run `get_ai_crawler_analytics` or `clics ai-crawlers <project-id> --date-range last30days`.
+3. Use dashboard-style filters (`category`, `provider`, `crawler`, `status`) only when the user asks for a narrower view.
+4. Summarize verified crawler activity from `categories`, `timeseries`, and `breakdowns`; mention `meta.environment` is production.
+
 ## Manual verification
 
 Confirm authentication and API access with the CLI so JSON is visible in the terminal:
@@ -481,6 +569,7 @@ Confirm authentication and API access with the CLI so JSON is visible in the ter
 clics projects list
 clics query <project-id> --metrics visitors --date-range last7days
 clics sessions list <project-id> --date-range last7days --limit 5
+clics ai-crawlers <project-id> --date-range last7days
 ```
 
 Expect a JSON projects payload, a stats `results` array, and a sessions list. Common errors:

@@ -6,16 +6,15 @@ Privacy-friendly, cookieless web analytics — built for teams that want GDPR-fr
 - **Dashboard:** [platform.clics.dev](https://platform.clics.dev)
 - **Docs:** [clics.dev/docs](https://clics.dev/docs)
 
-Clics measures traffic, goals, funnels, and sessions on your sites. This repository distributes **agent-facing tooling** so AI assistants can query analytics and manage your workspace from the terminal, a local MCP client, or a web-based assistant.
+Clics measures traffic, goals, funnels, sessions, and AI crawlers on your sites. This repository distributes **agent-facing tooling** so AI assistants can query analytics and manage your workspace from the terminal, a local MCP client, or a web-based assistant.
 
 ## What you get
 
 | Tool             | Package / endpoint                                             | Best for                                                            |
 | ---------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **Clics plugin**  | Available from Plugins                                         | ChatGPT and Codex                                                   |
-| **Cursor plugin** | This repository                                                | Cursor                                                             |
-| **Remote MCP**    | Hosted endpoint (see below)                                    | Claude.ai and other signed-in HTTP MCP clients                      |
-| **Local MCP**     | [`@clicsdev/mcp`](https://www.npmjs.com/package/@clicsdev/mcp) | Claude Code, VS Code, Windsurf, and other stdio MCP clients         |
+| **Clics plugin** | Available from Plugins                                         | ChatGPT and Codex                                                   |
+| **Remote MCP**   | Hosted endpoint (see below)                                    | Claude.ai and other signed-in HTTP MCP clients                      |
+| **Local MCP**    | [`@clicsdev/mcp`](https://www.npmjs.com/package/@clicsdev/mcp) | Cursor, Claude Code, VS Code, Windsurf, and other stdio MCP clients |
 | **CLI**          | [`@clicsdev/cli`](https://www.npmjs.com/package/@clicsdev/cli) | Scripts, CI, and manual verification from the terminal              |
 | **Agent skill**  | this repo                                                      | Teaching agents when and how to use Clics MCP + CLI                 |
 
@@ -35,7 +34,7 @@ https://api.clics.dev/v1/mcp
 
 Compatible clients discover the sign-in flow automatically. Sign in to Clics and select the workspace you want to connect; no API key is required.
 
-**Tools:** 18 core workspace tools: `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `list_sessions`, `get_session`, `list_session_events`, and `query_stats`.
+**Tools:** 19 core workspace tools: `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`, `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `list_funnels`, `get_funnel`, `create_funnel`, `update_funnel`, `delete_funnel`, `list_sessions`, `get_session`, `list_session_events`, `get_ai_crawler_analytics`, and `query_stats`.
 
 ### ChatGPT
 
@@ -50,17 +49,6 @@ Compatible clients discover the sign-in flow automatically. Sign in to Clics and
 2. Search for **Clics** and click **Add**.
 3. Click **Connect**, sign in to Clics, and select your workspace.
 4. Start a task and ask Codex to use Clics.
-
-### Cursor
-
-1. Open **Customize** in Cursor and search the Marketplace for **Clics**.
-2. Install the Clics plugin.
-3. Connect Clics and sign in.
-4. Ask Cursor to analyze your traffic, pages, goals, funnels, or visitor journeys.
-
-The Cursor plugin bundles the hosted Clics MCP server with the Clics analytics skill. No API key or local MCP process is required.
-
-Cursor plugin skill source: [`cursor-skills/clics/SKILL.md`](cursor-skills/clics/SKILL.md)
 
 ### Claude.ai
 
@@ -84,7 +72,7 @@ Cursor plugin skill source: [`cursor-skills/clics/SKILL.md`](cursor-skills/clics
 
 ## Local MCP (`@clicsdev/mcp`)
 
-Local [Model Context Protocol](https://modelcontextprotocol.io) server (stdio) for cookie-free analytics. Manage projects, goals, funnels, sessions, and query stats from your editor when it can run a local process.
+Local [Model Context Protocol](https://modelcontextprotocol.io) server (stdio) for cookie-free analytics. Manage projects, goals, funnels, sessions, AI crawlers, and query stats from your editor when it can run a local process.
 
 **Install**
 
@@ -111,7 +99,7 @@ npm install -g @clicsdev/mcp
 }
 ```
 
-**Tools:** 22 tools: `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`; `list_goals`, `get_goal`, `get_goal_stats`, `create_goal`, `update_goal`, `delete_goal`; `list_funnels`, `get_funnel`, `get_funnel_stats`, `create_funnel`, `update_funnel`, `delete_funnel`; `list_session_filter_values`, `list_sessions`, `get_session`, `list_session_events`; and `query_stats`.
+**Tools:** 23 tools: `list_projects`, `get_project`, `create_project`, `update_project`, `delete_project`; `list_goals`, `get_goal`, `get_goal_stats`, `create_goal`, `update_goal`, `delete_goal`; `list_funnels`, `get_funnel`, `get_funnel_stats`, `create_funnel`, `update_funnel`, `delete_funnel`; `list_session_filter_values`, `list_sessions`, `get_session`, `list_session_events`; `get_ai_crawler_analytics`; and `query_stats`.
 
 Goals support four types: `page`, `event`, `outbound`, and `scroll_depth`. The local MCP also returns dashboard-ready statistics for goals and funnels, and can discover the available values for Sessions filters. See the installed package README for each tool's complete input schema.
 
@@ -152,8 +140,22 @@ clics sessions filter-values <project-id> --field country --date-range last30day
 clics sessions list <project-id> --date-range last7days --limit 20
 clics sessions get <project-id> <session-id>
 clics sessions events <project-id> <session-id>
+clics ai-crawlers <project-id> --date-range last30days --provider OpenAI
 clics query <project-id> --metrics visitors pageviews bounce_rate --date-range last30days
 ```
+
+AI crawler providers: `OpenAI`, `Anthropic`, `Perplexity`, `Google`,
+`Microsoft`, `Mistral`, `Amazon`, `DuckDuckGo`, `Apple`, `Moonshot AI`,
+`Common Crawl`.
+
+AI crawlers: `ChatGPT-User`, `OAI-SearchBot`, `GPTBot`, `Claude-User`,
+`Claude-SearchBot`, `ClaudeBot`, `Perplexity-User`, `PerplexityBot`,
+`Google-Agent`, `Google-GeminiNotebook`, `Google-NotebookLM`,
+`Google-Read-Aloud`, `Google-InspectionTool`, `Googlebot`, `GoogleOther`,
+`Google-CloudVertexBot`, `Bingbot`, `msnbot`, `MistralAI-User`,
+`MistralAI-Index`, `Amzn-User`, `Amzn-SearchBot`, `Amazonbot`,
+`DuckAssistBot`, `Applebot`, `Kimi-User`, `Kimi-SearchBot`, `KimiBot`,
+`CCBot`.
 
 Full command reference: [npm/@clicsdev/cli](https://www.npmjs.com/package/@clicsdev/cli)
 
